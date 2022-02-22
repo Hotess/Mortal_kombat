@@ -23,6 +23,25 @@ const player2 = {
     },
 }
 
+player1.changeHP = changeHP;
+player1.handleElHP = handleElHP;
+player1.renderHP = renderHP;
+player2.changeHP = changeHP;
+player2.handleElHP = handleElHP;
+player2.renderHP = renderHP;
+
+player1.createPlayer = createPlayer;
+player2.createPlayer = createPlayer;
+
+player1.createPlayer();
+player2.createPlayer();
+
+$arenas.append(player1.element);
+$arenas.append(player2.element);
+$arenas.append(createReloadButton());
+
+const $reloadWrap = document.querySelector('.reloadWrap');
+const $restartButton = $reloadWrap.querySelector('.button');
 const massivePlayers = [player1, player2];
 
 /** create tag */
@@ -36,9 +55,10 @@ function createElement(tag, className) {
     return $tag;
 }
 
-/** player lose */
+/** player wins */
 function playerWins(playerObj) {
     const $playerWin = document.createElement('div');
+
     $playerWin.classList.add('winTitle');
 
     $playerWin.textContent = `${playerObj.name} wins`;
@@ -48,10 +68,46 @@ function playerWins(playerObj) {
 }
 
 /** hp of player */
-function changeHp(playerObj, hp) {
-    playerObj.hp -= hp;
-    console.log(playerObj.hp);
-    playerObj.life.style.width = `${playerObj.hp}%`
+function changeHP(winner) {
+    const hp = Math.floor(Math.random() * 20);
+
+    this.hp -= hp;
+
+    if (this.hp <= 0) {
+        manageButtonRestart('');
+        playerWins(winner);
+    }
+    this.renderHP(hp);
+}
+
+/** handle hp of current player */
+function handleElHP(winner) {
+    this.changeHP(winner)
+}
+
+/** render current life */
+function renderHP() {
+    this.life.style.width = `${this.hp}%`
+
+    if (this.hp <= 0) {
+        this.life.style.width = `0%`
+    }
+}
+
+/** manage button restart  */
+function manageButtonRestart(prop) {
+    $restartButton.disabled = `${prop}`;
+}
+
+/** create element button for restart game */
+function createReloadButton() {
+    const $reloadWrap = createElement('div', 'reloadWrap');
+    const $restartButton = createElement('button', 'button');
+
+    $restartButton.textContent = 'Restart';
+    $reloadWrap.append($restartButton);
+
+    return $reloadWrap;
 }
 
 /** create element player & insert in DOM */
@@ -79,29 +135,32 @@ function createPlayer() {
     this.element = $player;
 }
 
+manageButtonRestart('disabled');
+
 /** handle click randomButton */
 $randomButton.addEventListener('click', () => {
     const idPlayer = Math.floor(Math.random() * massivePlayers.length);
-    const hp = Math.floor(Math.random() * 20);
 
     if (idPlayer === 0) {
-        changeHp(player1, hp);
+        player1.handleElHP(player2);
     } else {
-        changeHp(player2, hp);
-    }
-
-    if (player1.hp < 0) {
-        playerWins(player2);
-    } else if (player2.hp < 0) {
-        playerWins(player1);
+        player2.handleElHP(player1);
     }
 });
 
-player1.createPlayer = createPlayer;
-player2.createPlayer = createPlayer;
+/** handle click restartButton */
+$reloadWrap.addEventListener('click', () => {
+    const $playerWin = document.querySelector('.winTitle');
 
-player1.createPlayer();
-player2.createPlayer();
+    massivePlayers.forEach((item) => {
+        if (item.life.style.width <= '0%') {
+            console.log($playerWin);
+            item.life.style.width = '100%';
+            $playerWin.remove();
+            window.location.reload();
 
-$arenas.append(player1.element);
-$arenas.append(player2.element);
+        } else {
+            manageButtonRestart('disabled');
+        }
+    });
+});
