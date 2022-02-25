@@ -1,48 +1,102 @@
 const $arenas = document.querySelector('.arenas');
-const $randomButton = document.querySelector('.button ');
+const $formControl = document.querySelector('form.control');
+const $fightButton = $formControl.querySelector('.button');
+const $formInputs = $formControl.querySelectorAll('input[type=radio]');
+const $chat = document.querySelector('.chat ');
 
-const player1 = {
-    player: 1,
-    name: 'scorpion',
-    hp: 100,
-    img: 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif',
-    weapon: [],
-    attack: () => {
-        console.log(`${name} fight`);
-    },
+const HIT = {
+    head: 30, body: 25, foot: 20,
 }
 
-const player2 = {
-    player: 2,
-    name: 'Liu Kang',
-    hp: 100,
-    img: 'http://reactmarathon-api.herokuapp.com/assets/liukang.gif',
-    weapon: [],
-    attack: () => {
-        console.log(`${name} fight`);
-    },
+const ATTACK = ['head', 'body', 'foot'];
+
+/** create object player */
+function Player(player, name, hp, img, weapon) {
+    this.player = player;
+    this.name = name;
+    this.hp = hp;
+    this.img = img;
+    this.weapon = [].push(weapon);
+
+    /** player attack */
+    this.attack = function () {
+        console.log(`${this.name} fight`);
+    };
+
+    /** change hp of current player */
+    this.changeHP = function (enemy, me, winner) {
+        if (me.defence !== enemy.hit) {
+            this.hp -= enemy.value;
+        }
+        console.log(winner.name);
+        this.renderHP(winner);
+    };
+
+    /** render player */
+    this.renderHP = function (winner) {
+        this.life.style.width = `${this.hp}%`
+
+        if (player1.hp === 0 && player2.hp === 0) {
+            this.playerWins(`draw`);
+
+        } else if (this.hp <= 0) {
+            this.life.style.width = `0%`
+            this.playerWins(`${winner.name} wins`);
+        }
+    }
+
+    /** choose hp of current player */
+    this.elHP = function (enemy, me, winner) {
+        this.changeHP(enemy, me, winner);
+    }
+
+    /** create player */
+    this.createPlayer = function () {
+        const $player = createElement('div', `player${this.player}`);
+        const $progressbar = createElement('div', 'progressbar');
+        const $character = createElement('div', 'character');
+        const $life = createElement('div', 'life');
+        const $name = createElement('div', 'name');
+        const $img = createElement('img');
+
+        $name.textContent = this.name;
+        $img.src = this.img;
+        $img.alt = this.name;
+
+        $life.style.width = `100%`;
+
+        $player.append($progressbar);
+        $player.append($character);
+        $progressbar.append($life);
+        $progressbar.append($name);
+        $character.append($img);
+
+        this.life = $life;
+        this.element = $player;
+    }
+
+    /** player wins */
+    this.playerWins = function (winner) {
+        const $playerWin = document.createElement('div');
+
+        $playerWin.classList.add('winTitle');
+        $playerWin.textContent = `${winner}`;
+
+        $fightButton.disabled = 'disabled';
+
+        $arenas.append($playerWin);
+        $arenas.append(createReloadButton());
+    }
 }
 
-player1.changeHP = changeHP;
-player1.handleElHP = handleElHP;
-player1.renderHP = renderHP;
-player2.changeHP = changeHP;
-player2.handleElHP = handleElHP;
-player2.renderHP = renderHP;
-
-player1.createPlayer = createPlayer;
-player2.createPlayer = createPlayer;
+const player1 = new Player(1, 'Scorpion', 100, 'http://reactmarathon-api.herokuapp.com/assets/scorpion.gif');
+const player2 = new Player(2, 'Liu Kang', 100, 'http://reactmarathon-api.herokuapp.com/assets/liukang.gif');
 
 player1.createPlayer();
 player2.createPlayer();
 
 $arenas.append(player1.element);
 $arenas.append(player2.element);
-$arenas.append(createReloadButton());
-
-const $reloadWrap = document.querySelector('.reloadWrap');
-const $restartButton = $reloadWrap.querySelector('.button');
-const massivePlayers = [player1, player2];
 
 /** create tag */
 function createElement(tag, className) {
@@ -55,112 +109,59 @@ function createElement(tag, className) {
     return $tag;
 }
 
-/** player wins */
-function playerWins(playerObj) {
-    const $playerWin = document.createElement('div');
-
-    $playerWin.classList.add('winTitle');
-
-    $playerWin.textContent = `${playerObj.name} wins`;
-    $randomButton.disabled = 'disabled';
-
-    $arenas.append($playerWin);
-}
-
-/** hp of player */
-function changeHP(winner) {
-    const hp = Math.floor(Math.random() * 20);
-
-    this.hp -= hp;
-
-    if (this.hp <= 0) {
-        manageButtonRestart('');
-        playerWins(winner);
-    }
-    this.renderHP(hp);
-}
-
-/** handle hp of current player */
-function handleElHP(winner) {
-    this.changeHP(winner)
-}
-
-/** render current life */
-function renderHP() {
-    this.life.style.width = `${this.hp}%`
-
-    if (this.hp <= 0) {
-        this.life.style.width = `0%`
-    }
-}
-
-/** manage button restart  */
-function manageButtonRestart(prop) {
-    $restartButton.disabled = `${prop}`;
-}
-
 /** create element button for restart game */
 function createReloadButton() {
     const $reloadWrap = createElement('div', 'reloadWrap');
+
     const $restartButton = createElement('button', 'button');
 
     $restartButton.textContent = 'Restart';
     $reloadWrap.append($restartButton);
 
+    /** handle click restartButton */
+    $reloadWrap.addEventListener('click', () => {
+        window.location.reload();
+    });
+
     return $reloadWrap;
 }
 
-/** create element player & insert in DOM */
-function createPlayer() {
-    const $player = createElement('div', `player${this.player}`);
-    const $progressbar = createElement('div', 'progressbar');
-    const $character = createElement('div', 'character');
-    const $life = createElement('div', 'life');
-    const $name = createElement('div', 'name');
-    const $img = createElement('img');
-
-    $name.textContent = this.name;
-    $img.src = this.img;
-    $img.alt = this.name;
-
-    $life.style.width = `100%`;
-
-    $player.append($progressbar);
-    $player.append($character);
-    $progressbar.append($life);
-    $progressbar.append($name);
-    $character.append($img);
-
-    this.life = $life;
-    this.element = $player;
+/** get random number */
+function getRandom(num) {
+    return Math.floor(Math.random() * num);
 }
 
-manageButtonRestart('disabled');
+/** attack of enemy*/
+function enemyAttack() {
+    const hit = ATTACK[getRandom(3)];
+    const defence = ATTACK[getRandom(3)];
 
-/** handle click randomButton */
-$randomButton.addEventListener('click', () => {
-    const idPlayer = Math.floor(Math.random() * massivePlayers.length);
+    return {
+        value: getRandom(HIT[hit]), hit, defence,
+    };
+}
 
-    if (idPlayer === 0) {
-        player1.handleElHP(player2);
-    } else {
-        player2.handleElHP(player1);
-    }
-});
+/** handle click fightButton */
+$formControl.addEventListener('submit', (event) => {
+    event.preventDefault();
 
-/** handle click restartButton */
-$reloadWrap.addEventListener('click', () => {
-    const $playerWin = document.querySelector('.winTitle');
+    const enemy = enemyAttack();
+    const valuesPlayer1 = {};
 
-    massivePlayers.forEach((item) => {
-        if (item.life.style.width <= '0%') {
-            console.log($playerWin);
-            item.life.style.width = '100%';
-            $playerWin.remove();
-            window.location.reload();
-
-        } else {
-            manageButtonRestart('disabled');
+    $formInputs.forEach(item => {
+        if (item.checked) {
+            if (item.name === 'hit') {
+                valuesPlayer1.value = getRandom(HIT[item.value]);
+                valuesPlayer1.hit = item.value;
+            } else {
+                valuesPlayer1[item.name] = item.value;
+            }
         }
+        item.checked = '';
     });
+
+    player1.elHP(enemy, valuesPlayer1, player2);
+    player2.elHP(valuesPlayer1, enemy, player1);
+
+    $chat.innerHTML += `<p>${player1.name}: life - ${player1.life.style.width}, hit - ${valuesPlayer1.hit}, defence - ${valuesPlayer1.defence}.\n${player2.name}: life - ${player2.life.style.width}, hit - ${enemy.hit}, defence - ${enemy.defence}</p>`
 });
